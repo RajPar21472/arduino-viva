@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino Practical Viva Examination</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #eef2f7;
+    color: #172033;
+}
+.header {
+    background: linear-gradient(135deg, #0f3d91, #0f766e);
+    color: white;
+    padding: 25px 20px;
+    text-align: center;
+}
+.header h1 { margin: 0; font-size: 26px; }
+.header h2 { margin: 6px 0; font-size: 18px; font-weight: normal; }
+.header p { margin: 4px; font-size: 14px; }
+.container { max-width: 1000px; margin: auto; padding: 20px; }
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.login-card { max-width: 520px; margin: 40px auto; }
+.input-group { margin-bottom: 18px; }
+.input-group label { display: block; font-weight: bold; margin-bottom: 6px; }
+.input-group input {
+    width: 100%;
+    padding: 13px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+}
+.input-group input:focus { border-color: #2563eb; outline: none; }
+button {
+    border: none;
+    padding: 13px 22px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px;
+    font-weight: bold;
+}
+.primary { background: #2563eb; color: white; }
+.primary:hover { background: #1d4ed8; }
+.success { background: #16a34a; color: white; }
+.danger { background: #dc2626; color: white; }
+.excel { background: #15803d; color: white; }
+.info-box {
+    background: #eff6ff;
+    border-left: 5px solid #2563eb;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+.warning {
+    background: #fff7ed;
+    border-left: 5px solid #f97316;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+.exam-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+.timer {
+    background: #dc2626;
+    color: white;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: bold;
+    min-width: 120px;
+    text-align: center;
+}
+.progress-container { margin: 18px 0; }
+.progress-text { font-weight: bold; margin-bottom: 6px; }
+.progress-bar {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2563eb, #16a34a);
+    transition: width 0.3s;
+}
+.question-number { color: #2563eb; font-weight: bold; font-size: 17px; }
+.question {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 14px 0 22px 0;
+    line-height: 1.45;
+}
+.option {
+    display: block;
+    border: 2px solid #dbe1e8;
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.option:hover { background: #eff6ff; border-color: #2563eb; }
+.option input { margin-right: 10px; transform: scale(1.25); }
+.code-question {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+.result-header {
+    text-align: center;
+    padding: 18px;
+    background: linear-gradient(135deg, #eff6ff, #ecfdf5);
+    border-radius: 12px;
+}
+.result-score {
+    font-size: 48px;
+    color: #2563eb;
+    font-weight: bold;
+}
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.result-table th, .result-table td {
+    border: 1px solid #d1d5db;
+    padding: 11px;
+    text-align: left;
+}
+.result-table th { background: #f1f5f9; }
+.review-item {
+    background: #f8fafc;
+    border: 1px solid #dbe1e8;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 12px 0;
+}
+.review-correct { border-left: 5px solid #16a34a; }
+.review-wrong { border-left: 5px solid #dc2626; }
+.correct { color: #16a34a; font-weight: bold; }
+.incorrect { color: #dc2626; font-weight: bold; }
+.hidden { display: none !important; }
+footer {
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 25px;
+}
+@media(max-width:700px) {
+    .exam-top { flex-direction: column; gap: 12px; }
+    .question { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>INSTITUTE OF TECHNOLOGY</h1>
+    <h2>UNIVERSITY OF MORATUWA</h2>
+    <p>Division of Electrical, Electronics & Telecommunication Engineering Technology</p>
+    <p><strong>ET2404 – Microprocessors and Microcontroller Systems</strong></p>
+    <p>Arduino Practical – Viva Examination</p>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="container">
+    <div class="card login-card">
+        <h2>🔐 Student Login</h2>
+
+        <div class="info-box">
+            <strong>Arduino Practical Viva</strong><br><br>
+            • 15 Questions (randomly selected)<br>
+            • Different questions for each student<br>
+            • Time Limit: <strong>8 minutes</strong><br>
+            • Cannot go back to previous questions<br>
+            • Auto-submit when time ends
+        </div>
+
+        <div class="input-group">
+            <label>Access Password</label>
+            <input type="password" id="examPassword" placeholder="Enter password given by lecturer">
+        </div>
+
+        <div class="input-group">
+            <label>Student Name</label>
+            <input type="text" id="studentName" placeholder="Enter full name" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <label>Student ID</label>
+            <input type="text" id="studentID" placeholder="Enter student ID" autocomplete="off">
+        </div>
+
+        <div class="warning">
+            ⚠️ Once started, the timer cannot be paused and you cannot return to previous questions.
+        </div>
+
+        <button class="primary" style="width:100%;" onclick="startExam()">
+            ▶ START VIVA
+        </button>
+    </div>
+</div>
+
+<!-- EXAM PAGE -->
+<div id="examPage" class="container hidden">
+    <div class="exam-top">
+        <div class="student-info">
+            <strong>Student:</strong> <span id="displayName"></span><br>
+            <strong>ID:</strong> <span id="displayID"></span>
+        </div>
+        <div class="timer" id="timer">08:00</div>
+    </div>
+
+    <div class="card">
+        <div class="progress-container">
+            <div class="progress-text">
+                Question <span id="currentQuestionNumber">1</span> of <span id="totalQuestions">15</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div id="questionArea"></div>
+
+        <div style="text-align:right; margin-top:22px;">
+            <button id="nextButton" class="primary" onclick="nextQuestion()">
+                Next Question →
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div id="resultPage" class="container hidden">
+    <div class="card">
+        <div class="result-header">
+            <h2>🎉 Viva Completed</h2>
+            <p id="resultStudent"></p>
+            <div class="result-score" id="finalScore">0 / 15</div>
+            <p id="percentage"></p>
+        </div>
+
+        <table class="result-table">
+            <tr><th>Student Name</th><td id="resultName"></td></tr>
+            <tr><th>Student ID</th><td id="resultID"></td></tr>
+            <tr><th>Marks</th><td id="totalMarks"></td></tr>
+            <tr><th>Percentage</th><td id="totalPercentage"></td></tr>
+            <tr><th>Time Used</th><td id="timeUsed"></td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>📖 Answer Review</h2>
+        <div id="reviewArea"></div>
+    </div>
+
+    <div class="card">
+        <h2>📁 Results (for Lecturer)</h2>
+        <button class="excel" onclick="downloadExcel()">📥 DOWNLOAD EXCEL</button>
+        <button class="danger" onclick="clearResults()">🗑 Clear Saved Results</button>
+        <div id="savedResults" style="margin-top:18px;"></div>
+    </div>
+</div>
+
+<script>
+/* ===================== CONFIG ===================== */
+const EXAM_PASSWORD = "ArduinoViva";   // ← Change password here if needed
+const TOTAL_TIME = 480;                // 8 minutes = 480 seconds
+const QUESTIONS_PER_STUDENT = 15;
+
+/* ===================== LARGE QUESTION BANK ===================== */
+const questionBank = [
+
+    // ========== BASIC ==========
+    {
+        type: "mcq", level: "basic",
+        question: "What is the main purpose of the USB cable connected to the Arduino UNO?",
+        options: ["Only to power the LED", "To communicate with the computer and also provide power", "Only to connect the LCD", "To increase PWM frequency"],
+        answer: 1,
+        explanation: "USB provides both data communication and power."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "Which function runs only once when the Arduino starts or is reset?",
+        options: ["loop()", "setup()", "delay()", "digitalWrite()"],
+        answer: 1,
+        explanation: "setup() runs only once at the beginning."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "Which software is used to write and upload Arduino programs?",
+        options: ["Arduino IDE", "Microsoft Word", "Photoshop", "Excel"],
+        answer: 0,
+        explanation: "Arduino IDE is the official software."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "Where do you select the serial port in Arduino IDE?",
+        options: ["Tools → Port", "File → Save", "Edit → Copy", "Help → About"],
+        answer: 0,
+        explanation: "Tools → Port is used to select the correct COM port."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "What does digitalWrite(13, HIGH) do?",
+        options: ["Sets pin 13 to LOW", "Sets pin 13 to HIGH", "Reads pin 13", "Sets PWM to 255"],
+        answer: 1,
+        explanation: "digitalWrite(pin, HIGH) turns the pin ON."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "What value of delay() is needed for 2 seconds?",
+        options: ["20", "200", "2000", "20000"],
+        answer: 2,
+        explanation: "delay() uses milliseconds. 2000 ms = 2 seconds."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "Which value turns a digital output OFF?",
+        options: ["HIGH", "LOW", "255", "127"],
+        answer: 1,
+        explanation: "LOW turns the digital output OFF."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "What does pinMode(pin, OUTPUT) do?",
+        options: ["Reads the pin", "Sets the pin as an output", "Turns computer off", "Starts serial"],
+        answer: 1,
+        explanation: "pinMode configures the pin as INPUT or OUTPUT."
+    },
+
+    // ========== ADVANCED ==========
+    {
+        type: "mcq", level: "advanced",
+        question: "Which group contains only the PWM pins of Arduino UNO?",
+        options: ["2, 4, 7, 8", "3, 5, 6, 9, 10, 11", "0, 1, 2, 13", "A0, A1, A2, A3"],
+        answer: 1,
+        explanation: "PWM pins on UNO are 3, 5, 6, 9, 10 and 11."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "On Arduino UNO, which pins are used for I2C?",
+        options: ["A2 and A3", "A4 (SDA) and A5 (SCL)", "Digital 2 and 3", "Pins 9 and 10"],
+        answer: 1,
+        explanation: "A4 = SDA, A5 = SCL on Arduino UNO."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What is the range of analogWrite() on Arduino UNO?",
+        options: ["0–10", "0–100", "0–255", "0–1023"],
+        answer: 2,
+        explanation: "analogWrite() accepts values from 0 to 255."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What does analogWrite(pin, 127) approximately represent?",
+        options: ["0% duty cycle", "25% duty cycle", "50% duty cycle", "100% duty cycle"],
+        answer: 2,
+        explanation: "127 is roughly half of 255 → about 50% duty cycle."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What does PWM stand for?",
+        options: ["Pulse Width Modulation", "Power Wire Method", "Program Width Machine", "Pulse Wire Measurement"],
+        answer: 0,
+        explanation: "PWM = Pulse Width Modulation."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What is the main difference between digitalWrite() and direct AVR register programming?",
+        options: [
+            "They are exactly the same",
+            "Arduino functions are higher-level; registers directly control hardware",
+            "Arduino cannot control pins",
+            "Registers are only for LCD"
+        ],
+        answer: 1,
+        explanation: "Arduino functions are easier. Direct register access (DDRB, PORTB) is lower-level and faster."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "Which library is commonly used for I2C communication?",
+        options: ["Wire.h", "PWM.h", "LED.h", "Serial.h"],
+        answer: 0,
+        explanation: "Wire.h is the standard library for I2C/TWI."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What does Serial.begin(9600) do?",
+        options: ["Sets baud rate to 9600", "Sets PWM to 9600", "Turns LED ON", "Starts I2C"],
+        answer: 0,
+        explanation: "It initializes serial communication at 9600 baud."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "What does Serial.available() return?",
+        options: ["Number of bytes available to read", "LED status", "PWM value", "LCD address"],
+        answer: 0,
+        explanation: "It returns how many bytes are waiting in the serial buffer."
+    },
+    {
+        type: "mcq", level: "advanced",
+        question: "Why is a resistor connected in series with an LED?",
+        options: ["To limit current", "To increase brightness", "To create I2C address", "To increase PWM frequency"],
+        answer: 0,
+        explanation: "The resistor limits current and protects the LED."
+    },
+
+    // ========== CODING (Fill) ==========
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for basic LED blink (pin 13):\n\n_____(13, OUTPUT);\ndigitalWrite(13, HIGH);\n_____(1000);\ndigitalWrite(13, LOW);`,
+        options: ["pinMode , delay", "digitalMode , wait", "setPin , pause", "output , sleep"],
+        answer: 0,
+        explanation: "pinMode sets direction, delay waits in milliseconds."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for Serial control of LED (1 = ON, 0 = OFF):\n\nSerial._____(9600);\nif (Serial._____() > 0) {\n  char data = Serial._____();\n  if (data == '1') digitalWrite(LED_PIN, _____);\n}`,
+        options: ["begin , available , read , HIGH", "start , ready , get , ON", "open , check , input , 1", "init , count , data , TRUE"],
+        answer: 0,
+        explanation: "Serial.begin → available → read → HIGH"
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for PWM brightness control:\n\nint value = Serial._____();\n_____(LED_PIN, value);   // 0 to 255`,
+        options: ["parseInt , analogWrite", "readInt , digitalWrite", "getInt , pinMode", "available , analogRead"],
+        answer: 0,
+        explanation: "parseInt reads the number, analogWrite sets PWM."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for I2C LCD:\n\n_____ <Wire.h>\n_____ <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nlcd._____();\nlcd._____();`,
+        options: ["#include , #include , init , backlight", "#include , #include , begin , light", "#define , #define , start , on", "#import , #import , setup , display"],
+        answer: 0,
+        explanation: "#include <Wire.h>, #include <LiquidCrystal_I2C.h>, lcd.init(), lcd.backlight()"
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for AVR LED blink on PB5:\n\n#include <_____/io.h>\n#include <_____/delay.h>\n_____ |= (1 << DDB5);\n_____ |= (1 << PORTB5);`,
+        options: ["avr , util , DDRB , PORTB", "avr , wire , PORTB , DDRB", "util , avr , PINB , PORTB", "stdio , avr , DDRB , PINB"],
+        answer: 0,
+        explanation: "avr/io.h + util/delay.h + DDRB + PORTB"
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks:\n\nvoid setup() {\n  _____(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH);\n  _____(500);\n  digitalWrite(13, LOW);\n  delay(500);\n}`,
+        options: ["pinMode , delay", "digitalMode , wait", "setPin , pause", "output , sleep"],
+        answer: 0,
+        explanation: "Standard blink structure."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for reading serial integer and setting PWM:\n\nif (Serial.available() > 0) {\n  int brightness = Serial._____();\n  analogWrite(9, brightness);\n}`,
+        options: ["parseInt", "read", "available", "begin"],
+        answer: 0,
+        explanation: "Serial.parseInt() extracts the integer from serial input."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks for turning LED OFF using AVR:\n\nPORTB _____ ~(1 << PORTB5);`,
+        options: ["&=", "|=", "^=", "="],
+        answer: 0,
+        explanation: "PORTB &= ~(1 << PORTB5); clears the bit (turns LED OFF)."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Complete the code:\n\n#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nvoid setup() {\n  lcd._____();\n  lcd._____();\n  lcd.print("ITUM");\n}`,
+        options: ["init , backlight", "begin , light", "start , on", "setup , display"],
+        answer: 0,
+        explanation: "lcd.init() and lcd.backlight() are required."
+    },
+    {
+        type: "fill", level: "coding",
+        question: `Fill the blanks:\n\nSerial.begin(_____);\nif (Serial.available()) {\n  char c = Serial.read();\n  if (c == '0') digitalWrite(13, LOW);\n}`,
+        options: ["9600", "115200", "4800", "1200"],
+        answer: 0,
+        explanation: "Lab uses 9600 baud rate."
+    }
+];
+
+/* ===================== EXAM VARIABLES ===================== */
+let selectedQuestions = [];
+let currentQuestion = 0;
+let studentAnswers = [];
+let secondsRemaining = TOTAL_TIME;
+let timerInterval = null;
+let examFinished = false;
+
+/* ===================== SHUFFLE ===================== */
+function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+/* ===================== START EXAM ===================== */
+function startExam() {
+    const password = document.getElementById("examPassword").value.trim();
+    const name = document.getElementById("studentName").value.trim();
+    const id = document.getElementById("studentID").value.trim();
+
+    if (password !== EXAM_PASSWORD) {
+        alert("Incorrect password. Please ask the lecturer.");
+        return;
+    }
+    if (name === "" || id === "") {
+        alert("Please enter both Student Name and Student ID.");
+        return;
+    }
+
+    // Randomly select 15 questions from the large bank
+    selectedQuestions = shuffle([...questionBank]).slice(0, QUESTIONS_PER_STUDENT);
+    currentQuestion = 0;
+    studentAnswers = [];
+    secondsRemaining = TOTAL_TIME;
+    examFinished = false;
+
+    document.getElementById("displayName").textContent = name;
+    document.getElementById("displayID").textContent = id;
+    document.getElementById("totalQuestions").textContent = selectedQuestions.length;
+
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("examPage").classList.remove("hidden");
+
+    try {
+        document.documentElement.requestFullscreen();
+    } catch (e) {}
+
+    showQuestion();
+    startTimer();
+}
+
+/* ===================== TIMER ===================== */
+function startTimer() {
+    clearInterval(timerInterval);
+    updateTimer();
+    timerInterval = setInterval(function() {
+        secondsRemaining--;
+        updateTimer();
+        if (secondsRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is over. Your viva will be submitted automatically.");
+            finishExam();
+        }
+    }, 1000);
+}
+
+function updateTimer() {
+    let m = Math.floor(secondsRemaining / 60);
+    let s = secondsRemaining % 60;
+    document.getElementById("timer").textContent =
+        String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+
+    if (secondsRemaining <= 60) {
+        document.getElementById("timer").style.background = "#991b1b";
+    }
+}
+
+/* ===================== SHOW QUESTION ===================== */
+function showQuestion() {
+    const q = selectedQuestions[currentQuestion];
+    document.getElementById("currentQuestionNumber").textContent = currentQuestion + 1;
+
+    let progress = (currentQuestion / selectedQuestions.length) * 100;
+    document.getElementById("progressFill").style.width = progress + "%";
+
+    let levelLabel = "";
+    if (q.level === "basic") levelLabel = " (Basic)";
+    else if (q.level === "advanced") levelLabel = " (Advanced)";
+    else if (q.level === "coding") levelLabel = " (Coding)";
+
+    let html = `<div class="question-number">Question ${currentQuestion + 1} / ${selectedQuestions.length}${levelLabel}</div>`;
+
+    const questionHtml = String(q.question)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br>");
+
+    html += `<div class="question">${questionHtml}</div>`;
+
+    if (q.type === "fill") {
+        html += `<div class="code-question"><strong>📝 Code Fill-in-the-Blanks</strong><p>Select the correct option to complete the code.</p></div>`;
+    }
+
+    html += `<div>`;
+    q.options.forEach(function(option, index) {
+        const safeOption = String(option)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/\n/g, "<br>");
+
+        html += `
+        <label class="option">
+            <input type="radio" name="answer" value="${index}">
+            <strong>${String.fromCharCode(65 + index)}.</strong> ${safeOption}
+        </label>`;
+    });
+    html += `</div>`;
+
+    document.getElementById("questionArea").innerHTML = html;
+
+    if (currentQuestion === selectedQuestions.length - 1) {
+        document.getElementById("nextButton").textContent = "Submit Viva →";
+    } else {
+        document.getElementById("nextButton").textContent = "Next Question →";
+    }
+}
+
+/* ===================== SAVE & NEXT ===================== */
+function saveCurrentAnswer() {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    studentAnswers[currentQuestion] = selected ? Number(selected.value) : null;
+}
+
+function nextQuestion() {
+    saveCurrentAnswer();
+    if (currentQuestion < selectedQuestions.length - 1) {
+        currentQuestion++;
+        showQuestion();
+    } else {
+        if (confirm("Are you sure you want to submit the viva?")) {
+            finishExam();
+        }
+    }
+}
+
+/* ===================== FINISH ===================== */
+function finishExam() {
+    if (examFinished) return;
+    examFinished = true;
+    clearInterval(timerInterval);
+    saveCurrentAnswer();
+
+    document.getElementById("examPage").classList.add("hidden");
+    document.getElementById("resultPage").classList.remove("hidden");
+
+    try { document.exitFullscreen(); } catch (e) {}
+
+    displayResult();
+}
+
+/* ===================== MARKING ===================== */
+function calculateMarks() {
+    let marks = 0;
+    selectedQuestions.forEach(function(q, index) {
+        if (studentAnswers[index] !== null &&
+            studentAnswers[index] !== undefined &&
+            Number(studentAnswers[index]) === q.answer) {
+            marks++;
+        }
+    });
+    return marks;
+}
+
+/* ===================== DISPLAY RESULT ===================== */
+function displayResult() {
+    const name = document.getElementById("studentName").value.trim();
+    const id = document.getElementById("studentID").value.trim();
+    const marks = calculateMarks();
+    const total = selectedQuestions.length;
+    const percent = (marks / total) * 100;
+
+    document.getElementById("resultStudent").textContent = name + " — " + id;
+    document.getElementById("resultName").textContent = name;
+    document.getElementById("resultID").textContent = id;
+    document.getElementById("totalMarks").textContent = marks + " / " + total;
+    document.getElementById("finalScore").textContent = marks + " / " + total;
+    document.getElementById("percentage").textContent = percent.toFixed(1) + "%";
+    document.getElementById("totalPercentage").textContent = percent.toFixed(1) + "%";
+
+    let used = TOTAL_TIME - secondsRemaining;
+    let um = Math.floor(used / 60);
+    let us = used % 60;
+    document.getElementById("timeUsed").textContent =
+        String(um).padStart(2, "0") + ":" + String(us).padStart(2, "0");
+
+    showReview();
+    saveToLocalStorage(name, id, marks, total, percent);
+}
+
+/* ===================== REVIEW ===================== */
+function showReview() {
+    const area = document.getElementById("reviewArea");
+    area.innerHTML = "";
+
+    selectedQuestions.forEach(function(q, index) {
+        const studentAnswer = studentAnswers[index];
+        const correct = Number(studentAnswer) === q.answer;
+        const studentText = (studentAnswer === null || studentAnswer === undefined)
+            ? "No answer" : q.options[studentAnswer];
+        const correctText = q.options[q.answer];
+
+        let levelLabel = "";
+        if (q.level === "basic") levelLabel = " (Basic)";
+        else if (q.level === "advanced") levelLabel = " (Advanced)";
+        else if (q.level === "coding") levelLabel = " (Coding)";
+
+        area.innerHTML += `
+        <div class="review-item ${correct ? 'review-correct' : 'review-wrong'}">
+            <h3>Question ${index + 1}${levelLabel}</h3>
+            <p><strong>${String(q.question).replace(/\n/g, '<br>')}</strong></p>
+            <p>Your answer: <strong>${escapeHTML(studentText)}</strong></p>
+            <p>Correct answer: <strong>${escapeHTML(correctText)}</strong></p>
+            <p>${q.explanation || ''}</p>
+            <p class="${correct ? 'correct' : 'incorrect'}">
+                ${correct ? '✓ Correct' : '✗ Incorrect'}
+            </p>
+        </div>`;
+    });
+}
+
+function escapeHTML(text) {
+    if (text === null || text === undefined) return "";
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/* ===================== LOCAL STORAGE & EXCEL ===================== */
+function saveToLocalStorage(name, id, marks, total, percent) {
+    const used = TOTAL_TIME - secondsRemaining;
+    const um = Math.floor(used / 60);
+    const us = used % 60;
+    const time = String(um).padStart(2, "0") + ":" + String(us).padStart(2, "0");
+
+    const result = {
+        "Date": new Date().toLocaleDateString(),
+        "Time": new Date().toLocaleTimeString(),
+        "Student Name": name,
+        "Student ID": id,
+        "Marks": marks,
+        "Total": total,
+        "Percentage": percent.toFixed(1),
+        "Time Used": time
+    };
+
+    let results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
+    results.push(result);
+    localStorage.setItem("arduinoVivaResults", JSON.stringify(results));
+    showSavedResults();
+}
+
+function showSavedResults() {
+    const results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
+    const area = document.getElementById("savedResults");
+
+    if (results.length === 0) {
+        area.innerHTML = "<p>No completed students yet.</p>";
+        return;
+    }
+
+    let html = `<table class="result-table">
+        <tr><th>#</th><th>Student Name</th><th>Student ID</th><th>Marks</th><th>%</th><th>Time</th></tr>`;
+
+    results.forEach(function(r, i) {
+        html += `<tr>
+            <td>${i + 1}</td>
+            <td>${escapeHTML(r["Student Name"])}</td>
+            <td>${escapeHTML(r["Student ID"])}</td>
+            <td>${r["Marks"]} / ${r["Total"]}</td>
+            <td>${r["Percentage"]}%</td>
+            <td>${r["Time Used"]}</td>
+        </tr>`;
+    });
+    html += `</table>`;
+    area.innerHTML = html;
+}
+
+function downloadExcel() {
+    const results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
+    if (results.length === 0) {
+        alert("No results to download yet.");
+        return;
+    }
+    const ws = XLSX.utils.json_to_sheet(results);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Viva Results");
+    XLSX.writeFile(wb, "Arduino_Viva_Results.xlsx");
+}
+
+function clearResults() {
+    if (confirm("Delete all saved results?")) {
+        localStorage.removeItem("arduinoVivaResults");
+        showSavedResults();
+    }
+}
+
+/* ===================== LOAD ===================== */
+window.onload = function() {
+    showSavedResults();
+};
+</script>
+
+<footer>
+    Arduino Practical Viva Examination<br>
+    ET2404 – Microprocessors and Microcontroller Systems<br>
+    <strong>15 Random Questions • 8 Minutes • Different set for each student</strong>
+</footer>
+</body>
+</html>

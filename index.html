@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arduino Practical Viva Examination</title>
+<title>Arduino Practical Viva Examination - Revised</title>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 * { box-sizing: border-box; }
@@ -33,13 +33,14 @@ body {
 .login-card { max-width: 520px; margin: 40px auto; }
 .input-group { margin-bottom: 18px; }
 .input-group label { display: block; font-weight: bold; margin-bottom: 6px; }
-.input-group input, .input-group textarea {
+.input-group input {
     width: 100%;
     padding: 13px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
     font-size: 16px;
 }
+.input-group input:focus { border-color: #2563eb; outline: none; }
 button {
     border: none;
     padding: 13px 22px;
@@ -51,6 +52,7 @@ button {
 }
 .primary { background: #2563eb; color: white; }
 .primary:hover { background: #1d4ed8; }
+.success { background: #16a34a; color: white; }
 .danger { background: #dc2626; color: white; }
 .excel { background: #15803d; color: white; }
 .info-box {
@@ -114,6 +116,7 @@ button {
     margin: 10px 0;
     border-radius: 10px;
     cursor: pointer;
+    transition: 0.2s;
 }
 .option:hover { background: #eff6ff; border-color: #2563eb; }
 .option input { margin-right: 10px; transform: scale(1.25); }
@@ -122,15 +125,6 @@ button {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 12px;
-}
-textarea.answer-box {
-    width: 100%;
-    min-height: 100px;
-    padding: 14px;
-    font-size: 16px;
-    border: 2px solid #cbd5e1;
-    border-radius: 10px;
-    font-family: Consolas, monospace;
 }
 .result-header {
     text-align: center;
@@ -173,10 +167,15 @@ footer {
     padding: 20px;
     margin-top: 25px;
 }
+@media(max-width:700px) {
+    .exam-top { flex-direction: column; gap: 12px; }
+    .question { font-size: 18px; }
+}
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
     <h1>INSTITUTE OF TECHNOLOGY</h1>
     <h2>UNIVERSITY OF MORATUWA</h2>
@@ -185,47 +184,53 @@ footer {
     <p>Arduino Practical – Viva Examination</p>
 </div>
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage" class="container">
     <div class="card login-card">
         <h2>🔐 Student Login</h2>
+
         <div class="info-box">
             <strong>Arduino Practical Viva</strong><br><br>
-            • 10 Questions (random)<br>
-            • 8 MCQ/Fill + <strong>2 Typing questions</strong><br>
-            • Time Limit: <strong>10 minutes</strong><br>
-            • Covers full lab sheet
+            • Total 10 Questions<br>
+            • 2 typed coding questions + 8 multiple-choice questions<br>
+            • Time Limit: 10 minutes<br>
+            • Cannot go back to previous questions<br>
+            • Auto-submit when time ends
         </div>
 
         <div class="input-group">
             <label>Access Password</label>
-            <input type="password" id="examPassword" placeholder="Enter password">
+            <input type="password" id="examPassword" placeholder="Enter password given by lecturer">
         </div>
+
         <div class="input-group">
             <label>Student Name</label>
-            <input type="text" id="studentName" placeholder="Full name" autocomplete="off">
+            <input type="text" id="studentName" placeholder="Enter full name" autocomplete="off">
         </div>
+
         <div class="input-group">
             <label>Student ID</label>
-            <input type="text" id="studentID" placeholder="Student ID" autocomplete="off">
+            <input type="text" id="studentID" placeholder="Enter student ID" autocomplete="off">
         </div>
 
         <div class="warning">
-            ⚠️ Timer starts immediately. You cannot go back.
+            ⚠️ Once started, the timer cannot be paused and you cannot return to previous questions.
         </div>
 
-        <button class="primary" style="width:100%;" onclick="startExam()">▶ START VIVA</button>
+        <button class="primary" style="width:100%;" onclick="startExam()">
+            ▶ START VIVA
+        </button>
     </div>
 </div>
 
-<!-- EXAM -->
+<!-- EXAM PAGE -->
 <div id="examPage" class="container hidden">
     <div class="exam-top">
         <div class="student-info">
             <strong>Student:</strong> <span id="displayName"></span><br>
             <strong>ID:</strong> <span id="displayID"></span>
         </div>
-        <div class="timer" id="timer">10:00</div>
+        <div class="timer" id="timer">05:00</div>
     </div>
 
     <div class="card">
@@ -241,12 +246,14 @@ footer {
         <div id="questionArea"></div>
 
         <div style="text-align:right; margin-top:22px;">
-            <button id="nextButton" class="primary" onclick="nextQuestion()">Next Question →</button>
+            <button id="nextButton" class="primary" onclick="nextQuestion()">
+                Next Question →
+            </button>
         </div>
     </div>
 </div>
 
-<!-- RESULT -->
+<!-- RESULT PAGE -->
 <div id="resultPage" class="container hidden">
     <div class="card">
         <div class="result-header">
@@ -271,172 +278,95 @@ footer {
     </div>
 
     <div class="card">
-        <h2>📁 Results (Lecturer)</h2>
-        <p id="storageNote" style="color:#b45309; display:none;">
-            Note: Browser storage is blocked. Please record marks manually.
-        </p>
+        <h2>📁 Results (for Lecturer)</h2>
         <button class="excel" onclick="downloadExcel()">📥 DOWNLOAD EXCEL</button>
-        <button class="danger" onclick="clearResults()">🗑 Clear Results</button>
+        <button class="danger" onclick="clearResults()">🗑 Clear Saved Results</button>
         <div id="savedResults" style="margin-top:18px;"></div>
     </div>
 </div>
 
 <script>
-const EXAM_PASSWORD = "Arduino21472";
-const TOTAL_TIME = 600;                 // 10 minutes
-const QUESTIONS_PER_STUDENT = 10;
+/* ===================== CONFIG ===================== */
+const EXAM_PASSWORD = "ArduinoViva";   // ← Change this password if needed
+const TOTAL_TIME = 600;                // 10 minutes
 
-function getStorage() {
-    try {
-        const key = "__test__";
-        window.localStorage.setItem(key, key);
-        window.localStorage.removeItem(key);
-        return window.localStorage;
-    } catch (e) {
-        return null;
-    }
-}
-const storage = getStorage();
+/* ===================== QUESTION BANK ===================== */
+/* 2 typed coding questions + 8 MCQs = 10 questions */
 
 const questionBank = [
-    // ===== MCQ =====
     {
-        type: "mcq",
-        question: "What is the main purpose of the USB cable with Arduino UNO?",
-        options: ["Only power the LED", "Communicate with computer and also provide power", "Only connect LCD", "Increase PWM frequency"],
-        answer: 1,
-        explanation: "USB provides both communication and power."
+        type: "text",
+        level: "coding",
+        question: `QUESTION 1 — C PROGRAM TYPING\nWrite a complete AVR C program for the Arduino UNO (ATmega328P) to blink the built-in LED on PB5 / digital pin 13. The LED must be ON for 1 second and OFF for 2 seconds. Use DDRB, PORTB and _delay_ms().`,
+        answer: null,
+        explanation: "Lecturer must manually assess the typed C program. Expected elements include avr/io.h, util/delay.h, F_CPU, DDRB, PORTB, PB5, while(1), and delays of 1000 ms and 2000 ms."
     },
     {
-        type: "mcq",
-        question: "Which function runs only once when Arduino starts?",
+        type: "text",
+        level: "coding",
+        question: `QUESTION 2 — ARDUINO CODE TYPING\nWrite a complete Arduino sketch to control an LED on pin 13 using the Serial Monitor. When the user sends character '1', turn the LED ON. When the user sends character '0', turn the LED OFF. Use Serial.begin(), Serial.available() and Serial.read().`,
+        answer: null,
+        explanation: "Lecturer must manually assess the typed Arduino sketch. Expected elements include pinMode(13, OUTPUT), Serial.begin(9600), Serial.available(), Serial.read(), comparisons with '1' and '0', and digitalWrite(HIGH/LOW)."
+    },
+    {
+        type: "mcq", level: "basic",
+        question: "Which Arduino function runs only once when the board starts or resets?",
         options: ["loop()", "setup()", "delay()", "digitalWrite()"],
         answer: 1,
-        explanation: "setup() runs only once."
+        explanation: "setup() runs once at the beginning of the program."
     },
     {
-        type: "mcq",
-        question: "Where do you select the serial port in Arduino IDE?",
-        options: ["Tools → Port", "File → Save", "Edit → Copy", "Sketch → Verify"],
-        answer: 0,
-        explanation: "Tools → Port"
-    },
-    {
-        type: "mcq",
-        question: "What does digitalWrite(13, HIGH) do?",
-        options: ["Sets pin 13 LOW", "Sets pin 13 HIGH", "Reads pin 13", "Sets PWM 255"],
+        type: "mcq", level: "basic",
+        question: "What is the main purpose of the USB cable connected to the Arduino UNO?",
+        options: ["Only to power the LED", "To communicate with the computer and provide power", "Only to connect the LCD", "To increase PWM frequency"],
         answer: 1,
-        explanation: "Turns the pin ON."
+        explanation: "USB can provide power and serial data communication with the computer."
     },
     {
-        type: "mcq",
-        question: "What value of delay() gives 2 seconds?",
-        options: ["20", "200", "2000", "20000"],
-        answer: 2,
-        explanation: "2000 milliseconds = 2 seconds"
-    },
-    {
-        type: "mcq",
-        question: "Which pins are PWM pins on Arduino UNO?",
-        options: ["2,4,7,8", "3,5,6,9,10,11", "0,1,2,13", "A0,A1,A2"],
+        type: "mcq", level: "advanced",
+        question: "Which group contains only the PWM pins of the Arduino UNO?",
+        options: ["2, 4, 7, 8", "3, 5, 6, 9, 10, 11", "0, 1, 2, 13", "A0, A1, A2, A3"],
         answer: 1,
-        explanation: "3, 5, 6, 9, 10, 11"
+        explanation: "Arduino UNO PWM pins are 3, 5, 6, 9, 10 and 11."
     },
     {
-        type: "mcq",
-        question: "On Arduino UNO, which pins are used for I2C?",
-        options: ["A2 & A3", "A4 (SDA) & A5 (SCL)", "2 & 3", "9 & 10"],
+        type: "mcq", level: "advanced",
+        question: "On the Arduino UNO, which pins are used for I2C communication?",
+        options: ["A2 and A3", "A4 (SDA) and A5 (SCL)", "Digital pins 2 and 3", "Pins 9 and 10"],
         answer: 1,
-        explanation: "A4 = SDA, A5 = SCL"
+        explanation: "On the Arduino UNO, A4 is SDA and A5 is SCL."
     },
     {
-        type: "mcq",
-        question: "What does analogWrite(pin, 255) represent?",
-        options: ["0% duty cycle", "50% duty cycle", "100% duty cycle", "25% duty cycle"],
-        answer: 2,
-        explanation: "255 ≈ 100% duty cycle"
+        type: "mcq", level: "basic",
+        question: "What value passed to analogWrite() requests maximum PWM output?",
+        options: ["0", "1", "127", "255"],
+        answer: 3,
+        explanation: "For the standard Arduino UNO analogWrite() range, 255 requests 100% duty cycle."
     },
     {
-        type: "mcq",
-        question: "What is the purpose of Serial.begin(9600)?",
-        options: ["Set PWM", "Start serial communication at 9600 baud", "Turn LED ON", "Start I2C"],
+        type: "mcq", level: "advanced",
+        question: "What does Serial.parseInt() do?",
+        options: ["Turns the LED on", "Reads an integer from serial input", "Starts I2C communication", "Sets a pin as output"],
         answer: 1,
-        explanation: "Initializes serial at 9600 baud"
+        explanation: "Serial.parseInt() reads an integer value from the serial input buffer."
     },
     {
-        type: "mcq",
-        question: "What does DDRB |= (1 << DDB5); do?",
-        options: ["Sets PB5 as input", "Sets PB5 as output", "Turns LED ON", "Clears PORTB"],
+        type: "mcq", level: "advanced",
+        question: "In AVR C, what is the purpose of DDRB?",
+        options: ["It prints text to the LCD", "It sets the direction of Port B pins", "It controls the serial baud rate", "It creates a delay"],
         answer: 1,
-        explanation: "Sets PB5 as OUTPUT"
+        explanation: "DDRB configures Port B pins as inputs or outputs; a bit value of 1 sets the corresponding pin as output."
     },
     {
-        type: "mcq",
-        question: "Why is a resistor connected in series with an LED?",
-        options: ["To limit current", "To increase brightness", "To create I2C address", "To increase frequency"],
-        answer: 0,
-        explanation: "Limits current and protects the LED"
-    },
-    {
-        type: "mcq",
-        question: "What is the difference between delay() and _delay_ms()?",
-        options: ["They are the same", "delay() is Arduino, _delay_ms() is AVR busy-wait", "_delay_ms() is only for LCD", "delay() is faster"],
+        type: "mcq", level: "advanced",
+        question: "Which library is used to communicate with I2C devices such as an I2C LCD?",
+        options: ["<avr/io.h>", "<Wire.h>", "<util/delay.h>", "<Servo.h>"],
         answer: 1,
-        explanation: "delay() is Arduino function, _delay_ms() is from util/delay.h"
-    },
-
-    // ===== FILL =====
-    {
-        type: "fill",
-        question: "Fill blanks for basic LED blink:\n\n_____(13, OUTPUT);\ndigitalWrite(13, HIGH);\n_____(1000);",
-        options: ["pinMode , delay", "digitalMode , wait", "setPin , pause", "output , sleep"],
-        answer: 0,
-        explanation: "pinMode and delay"
-    },
-    {
-        type: "fill",
-        question: "Fill blanks for Serial LED control:\n\nSerial._____(9600);\nif(Serial._____() > 0){\n  char c = Serial._____();\n}",
-        options: ["begin , available , read", "start , ready , get", "open , check , input", "init , count , data"],
-        answer: 0,
-        explanation: "begin → available → read"
-    },
-    {
-        type: "fill",
-        question: "Fill blanks for PWM:\n\nint val = Serial._____();\n_____(9, val);",
-        options: ["parseInt , analogWrite", "readInt , digitalWrite", "getInt , pinMode", "available , analogRead"],
-        answer: 0,
-        explanation: "parseInt + analogWrite"
-    },
-    {
-        type: "fill",
-        question: "Fill blanks for I2C LCD:\n\n_____ <Wire.h>\n_____ <LiquidCrystal_I2C.h>\nlcd._____();\nlcd._____();",
-        options: ["#include , #include , init , backlight", "#include , #include , begin , light", "#define , #define , start , on", "#import , #import , setup , display"],
-        answer: 0,
-        explanation: "#include + init + backlight"
-    },
-    {
-        type: "fill",
-        question: "Fill blanks for AVR:\n\n#include <_____/io.h>\n#include <_____/delay.h>\n_____ |= (1 << DDB5);",
-        options: ["avr , util , DDRB", "util , avr , PORTB", "avr , wire , PINB", "stdio , avr , DDRB"],
-        answer: 0,
-        explanation: "avr/io.h , util/delay.h , DDRB"
-    },
-
-    // ===== ONLY 2 TEXT / TYPING QUESTIONS =====
-    {
-        type: "text",
-        question: "Write the complete Arduino code line to set pin 13 as OUTPUT.",
-        keywords: ["pinmode(13, output)", "pinmode(13,output)", "pinmode (13, output)"],
-        explanation: "pinMode(13, OUTPUT);"
-    },
-    {
-        type: "text",
-        question: "Write the AVR code to turn the built-in LED (PB5) ON using registers.",
-        keywords: ["portb |= (1 << portb5)", "portb |= (1<<portb5)", "portb = portb | (1<<portb5)"],
-        explanation: "PORTB |= (1 << PORTB5);"
+        explanation: "Wire.h provides I2C/TWI communication functions on supported Arduino boards."
     }
 ];
 
+/* ===================== EXAM VARIABLES ===================== */
 let selectedQuestions = [];
 let currentQuestion = 0;
 let studentAnswers = [];
@@ -444,6 +374,7 @@ let secondsRemaining = TOTAL_TIME;
 let timerInterval = null;
 let examFinished = false;
 
+/* ===================== SHUFFLE ===================== */
 function shuffle(array) {
     let arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -453,111 +384,130 @@ function shuffle(array) {
     return arr;
 }
 
-function normalize(text) {
-    return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-function escapeHTML(t) {
-    return String(t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
+/* ===================== START EXAM ===================== */
 function startExam() {
     const password = document.getElementById("examPassword").value.trim();
     const name = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentID").value.trim();
 
     if (password !== EXAM_PASSWORD) {
-        alert("Incorrect password!");
+        alert("Incorrect password. Please ask the lecturer.");
         return;
     }
-    if (!name || !id) {
-        alert("Please enter Name and Student ID");
+    if (name === "" || id === "") {
+        alert("Please enter both Student Name and Student ID.");
         return;
     }
 
-    // Guarantee exactly 2 text questions
-    const textQs = questionBank.filter(q => q.type === "text");
-    const otherQs = questionBank.filter(q => q.type !== "text");
-    const selectedOthers = shuffle(otherQs).slice(0, 8);
-    selectedQuestions = shuffle([...selectedOthers, ...textQs]);
-
+    // Use all 10 questions and shuffle the order for each student
+    selectedQuestions = [...questionBank];
     currentQuestion = 0;
-    studentAnswers = new Array(10).fill(null);
+    studentAnswers = [];
     secondsRemaining = TOTAL_TIME;
     examFinished = false;
 
     document.getElementById("displayName").textContent = name;
     document.getElementById("displayID").textContent = id;
-    document.getElementById("totalQuestions").textContent = 10;
+    document.getElementById("totalQuestions").textContent = selectedQuestions.length;
 
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("examPage").classList.remove("hidden");
 
-    try { document.documentElement.requestFullscreen(); } catch(e){}
+    // Try to go full screen
+    try {
+        document.documentElement.requestFullscreen();
+    } catch (e) {}
 
     showQuestion();
     startTimer();
 }
 
+/* ===================== TIMER ===================== */
 function startTimer() {
     clearInterval(timerInterval);
     updateTimer();
-    timerInterval = setInterval(() => {
+    timerInterval = setInterval(function() {
         secondsRemaining--;
         updateTimer();
         if (secondsRemaining <= 0) {
             clearInterval(timerInterval);
-            alert("Time is over! Submitting automatically.");
+            alert("Time is over. Your viva will be submitted automatically.");
             finishExam();
         }
     }, 1000);
 }
 
 function updateTimer() {
-    const m = Math.floor(secondsRemaining / 60);
-    const s = secondsRemaining % 60;
-    document.getElementById("timer").textContent = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
-    if (secondsRemaining <= 60) document.getElementById("timer").style.background = "#991b1b";
+    let m = Math.floor(secondsRemaining / 60);
+    let s = secondsRemaining % 60;
+    document.getElementById("timer").textContent =
+        String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+
+    if (secondsRemaining <= 60) {
+        document.getElementById("timer").style.background = "#991b1b";
+    }
 }
 
+/* ===================== SHOW QUESTION ===================== */
 function showQuestion() {
     const q = selectedQuestions[currentQuestion];
     document.getElementById("currentQuestionNumber").textContent = currentQuestion + 1;
-    document.getElementById("progressFill").style.width = ((currentQuestion / 10) * 100) + "%";
 
-    let typeLabel = q.type === "text" ? " (Typing)" : q.type === "fill" ? " (Code Fill)" : " (MCQ)";
-    let html = `<div class="question-number">Question ${currentQuestion+1} / 10${typeLabel}</div>`;
-    html += `<div class="question">${String(q.question).replace(/\n/g,"<br>")}</div>`;
+    let progress = (currentQuestion / selectedQuestions.length) * 100;
+    document.getElementById("progressFill").style.width = progress + "%";
 
-    if (q.type === "mcq" || q.type === "fill") {
-        if (q.type === "fill") html += `<div class="code-question"><strong>📝 Code Fill-in-the-Blanks</strong></div>`;
-        q.options.forEach((opt, i) => {
-            html += `<label class="option"><input type="radio" name="answer" value="${i}"> <strong>${String.fromCharCode(65+i)}.</strong> ${opt}</label>`;
-        });
+    let levelLabel = "";
+    if (q.level === "basic") levelLabel = " (Basic)";
+    else if (q.level === "advanced") levelLabel = " (Advanced)";
+    else if (q.level === "coding") levelLabel = " (Type your code)";
+
+    let html = `<div class="question-number">Question ${currentQuestion + 1} / ${selectedQuestions.length}${levelLabel}</div>`;
+
+    const questionHtml = String(q.question)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br>");
+
+    html += `<div class="question">${questionHtml}</div>`;
+
+    if (q.type === "text") {
+        html += `<div class="code-question"><strong>⌨️ Type your answer below</strong><p>Write the complete program in the box. Typed code is saved for lecturer review and is not automatically marked.</p></div>`;
+        html += `<textarea id="typedAnswer" rows="14" spellcheck="false" placeholder="Type your code here..." style="width:100%;font-family:Consolas,monospace;font-size:14px;padding:12px;border:1px solid #cbd5e1;border-radius:8px;resize:vertical;"></textarea>`;
     } else {
-        html += `<div class="code-question"><strong>✍️ Type your answer</strong></div>
-                 <textarea class="answer-box" id="textAnswer" placeholder="Type your answer here..."></textarea>`;
+        html += `<div>`;
+        q.options.forEach(function(option, index) {
+            const safeOption = String(option)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/\n/g, "<br>");
+
+            html += `
+            <label class="option">
+                <input type="radio" name="answer" value="${index}">
+                <strong>${String.fromCharCode(65 + index)}.</strong> ${safeOption}
+            </label>`;
+        });
+        html += `</div>`;
     }
 
     document.getElementById("questionArea").innerHTML = html;
 
-    if (studentAnswers[currentQuestion] !== null) {
-        if (q.type === "text") {
-            const ta = document.getElementById("textAnswer");
-            if (ta) ta.value = studentAnswers[currentQuestion] || "";
-        } else {
-            const radios = document.querySelectorAll('input[name="answer"]');
-            if (radios[studentAnswers[currentQuestion]]) radios[studentAnswers[currentQuestion]].checked = true;
-        }
+    if (currentQuestion === selectedQuestions.length - 1) {
+        document.getElementById("nextButton").textContent = "Submit Viva →";
+    } else {
+        document.getElementById("nextButton").textContent = "Next Question →";
     }
-
-    document.getElementById("nextButton").textContent = currentQuestion === 9 ? "Submit Viva →" : "Next Question →";
 }
 
+/* ===================== SAVE & NEXT ===================== */
 function saveCurrentAnswer() {
     const q = selectedQuestions[currentQuestion];
     if (q.type === "text") {
-        studentAnswers[currentQuestion] = document.getElementById("textAnswer")?.value || "";
+        const typed = document.getElementById("typedAnswer");
+        studentAnswers[currentQuestion] = typed ? typed.value : "";
     } else {
         const selected = document.querySelector('input[name="answer"]:checked');
         studentAnswers[currentQuestion] = selected ? Number(selected.value) : null;
@@ -566,182 +516,196 @@ function saveCurrentAnswer() {
 
 function nextQuestion() {
     saveCurrentAnswer();
-    if (currentQuestion < 9) {
+    if (currentQuestion < selectedQuestions.length - 1) {
         currentQuestion++;
         showQuestion();
     } else {
-        if (confirm("Submit the viva now?")) finishExam();
+        if (confirm("Are you sure you want to submit the viva?")) {
+            finishExam();
+        }
     }
 }
 
+/* ===================== FINISH ===================== */
 function finishExam() {
     if (examFinished) return;
     examFinished = true;
     clearInterval(timerInterval);
     saveCurrentAnswer();
+
     document.getElementById("examPage").classList.add("hidden");
     document.getElementById("resultPage").classList.remove("hidden");
-    try { document.exitFullscreen(); } catch(e){}
+
+    try { document.exitFullscreen(); } catch (e) {}
+
     displayResult();
 }
 
-function isTextCorrect(ans, keywords) {
-    const a = normalize(ans);
-    if (!a) return false;
-    return keywords.some(k => a.includes(normalize(k)));
-}
-
+/* ===================== MARKING ===================== */
 function calculateMarks() {
     let marks = 0;
-    selectedQuestions.forEach((q, i) => {
-        const ans = studentAnswers[i];
-        if (q.type === "text") {
-            if (isTextCorrect(ans, q.keywords)) marks++;
-        } else if (ans !== null && Number(ans) === q.answer) {
+    selectedQuestions.forEach(function(q, index) {
+        if (q.type === "mcq" && studentAnswers[index] !== null &&
+            studentAnswers[index] !== undefined &&
+            Number(studentAnswers[index]) === q.answer) {
             marks++;
         }
     });
     return marks;
 }
 
+/* ===================== DISPLAY RESULT ===================== */
 function displayResult() {
     const name = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentID").value.trim();
     const marks = calculateMarks();
-    const percent = (marks / 10 * 100).toFixed(1);
+    const total = selectedQuestions.filter(q => q.type === "mcq").length;
+    const percent = (marks / total) * 100;
 
-    document.getElementById("resultStudent").textContent = `${name} — ${id}`;
+    document.getElementById("resultStudent").textContent = name + " — " + id;
     document.getElementById("resultName").textContent = name;
     document.getElementById("resultID").textContent = id;
-    document.getElementById("totalMarks").textContent = `${marks} / 10`;
-    document.getElementById("finalScore").textContent = `${marks} / 10`;
-    document.getElementById("percentage").textContent = percent + "%";
-    document.getElementById("totalPercentage").textContent = percent + "%";
+    document.getElementById("totalMarks").textContent = marks + " / " + total + " MCQs (typed code pending review)";
+    document.getElementById("finalScore").textContent = marks + " / " + total + " MCQs";
+    document.getElementById("percentage").textContent = percent.toFixed(1) + "% on MCQs; typed code requires lecturer marking.";
+    document.getElementById("totalPercentage").textContent = percent.toFixed(1) + "% (MCQs only)";
 
-    const used = TOTAL_TIME - secondsRemaining;
-    document.getElementById("timeUsed").textContent = 
-        String(Math.floor(used/60)).padStart(2,"0") + ":" + String(used%60).padStart(2,"0");
+    let used = TOTAL_TIME - secondsRemaining;
+    let um = Math.floor(used / 60);
+    let us = used % 60;
+    document.getElementById("timeUsed").textContent =
+        String(um).padStart(2, "0") + ":" + String(us).padStart(2, "0");
 
     showReview();
-    saveToLocalStorage(name, id, marks, percent);
+    saveToLocalStorage(name, id, marks, total, percent);
 }
 
+/* ===================== REVIEW ===================== */
 function showReview() {
     const area = document.getElementById("reviewArea");
     area.innerHTML = "";
-    selectedQuestions.forEach((q, i) => {
-        const ans = studentAnswers[i];
-        let correct = false, studentText = "", correctText = "";
 
+    selectedQuestions.forEach(function(q, index) {
+        const studentAnswer = studentAnswers[index];
+        let levelLabel = q.level === "coding" ? " (Typed Coding)" : " (MCQ)";
         if (q.type === "text") {
-            correct = isTextCorrect(ans, q.keywords);
-            studentText = ans || "No answer";
-            correctText = "Keywords: " + q.keywords.join(", ");
+            const typed = (studentAnswer === null || studentAnswer === undefined || String(studentAnswer).trim() === "")
+                ? "No code submitted" : escapeHTML(String(studentAnswer)).replace(/\n/g, "<br>");
+            area.innerHTML += `
+            <div class="review-item">
+                <h3>Question ${index + 1}${levelLabel}</h3>
+                <p><strong>${escapeHTML(String(q.question)).replace(/\n/g, "<br>")}</strong></p>
+                <p><strong>Student's typed answer:</strong></p>
+                <div style="white-space:pre-wrap;font-family:Consolas,monospace;background:#f3f4f6;padding:12px;border-radius:6px;overflow-wrap:anywhere;">${typed}</div>
+                <p><strong>Lecturer review:</strong> Pending manual marking.</p>
+                <p>${escapeHTML(q.explanation || "")}</p>
+            </div>`;
         } else {
-            correct = (ans !== null && Number(ans) === q.answer);
-            studentText = ans === null ? "No answer" : q.options[ans];
-            correctText = q.options[q.answer];
+            const correct = Number(studentAnswer) === q.answer;
+            const studentText = (studentAnswer === null || studentAnswer === undefined)
+                ? "No answer" : q.options[studentAnswer];
+            const correctText = q.options[q.answer];
+            area.innerHTML += `
+            <div class="review-item ${correct ? 'review-correct' : 'review-wrong'}">
+                <h3>Question ${index + 1}${levelLabel}</h3>
+                <p><strong>${escapeHTML(String(q.question)).replace(/\n/g, '<br>')}</strong></p>
+                <p>Your answer: <strong>${escapeHTML(studentText)}</strong></p>
+                <p>Correct answer: <strong>${escapeHTML(correctText)}</strong></p>
+                <p>${escapeHTML(q.explanation || '')}</p>
+                <p class="${correct ? 'correct' : 'incorrect'}">${correct ? '✓ Correct' : '✗ Incorrect'}</p>
+            </div>`;
         }
-
-        area.innerHTML += `
-        <div class="review-item ${correct ? 'review-correct' : 'review-wrong'}">
-            <h3>Question ${i+1} ${q.type === 'text' ? '(Typing)' : q.type === 'fill' ? '(Fill)' : '(MCQ)'}</h3>
-            <p><strong>${String(q.question).replace(/\n/g,'<br>')}</strong></p>
-            <p>Your answer: <strong>${escapeHTML(studentText)}</strong></p>
-            <p>Expected: <strong>${escapeHTML(correctText)}</strong></p>
-            <p>${q.explanation || ''}</p>
-            <p class="${correct ? 'correct' : 'incorrect'}">${correct ? '✓ Correct' : '✗ Incorrect'}</p>
-        </div>`;
     });
 }
 
-function saveToLocalStorage(name, id, marks, percent) {
-    if (!storage) {
-        document.getElementById("storageNote").style.display = "block";
-        return;
-    }
-    try {
-        const used = TOTAL_TIME - secondsRemaining;
-        const time = String(Math.floor(used/60)).padStart(2,"0") + ":" + String(used%60).padStart(2,"0");
-        const result = {
-            "Date": new Date().toLocaleDateString(),
-            "Time": new Date().toLocaleTimeString(),
-            "Student Name": name,
-            "Student ID": id,
-            "Marks": marks,
-            "Total": 10,
-            "Percentage": percent,
-            "Time Used": time
-        };
-        let results = JSON.parse(storage.getItem("arduinoVivaResults") || "[]");
-        results.push(result);
-        storage.setItem("arduinoVivaResults", JSON.stringify(results));
-        showSavedResults();
-    } catch(e) {
-        document.getElementById("storageNote").style.display = "block";
-    }
+function escapeHTML(text) {
+    if (text === null || text === undefined) return "";
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/* ===================== LOCAL STORAGE & EXCEL ===================== */
+function saveToLocalStorage(name, id, marks, total, percent) {
+    const used = TOTAL_TIME - secondsRemaining;
+    const um = Math.floor(used / 60);
+    const us = used % 60;
+    const time = String(um).padStart(2, "0") + ":" + String(us).padStart(2, "0");
+
+    const result = {
+        "Date": new Date().toLocaleDateString(),
+        "Time": new Date().toLocaleTimeString(),
+        "Student Name": name,
+        "Student ID": id,
+        "Marks": marks,
+        "Total": total,
+        "Percentage": percent.toFixed(1),
+        "Time Used": time
+    };
+
+    let results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
+    results.push(result);
+    localStorage.setItem("arduinoVivaResults", JSON.stringify(results));
+    showSavedResults();
 }
 
 function showSavedResults() {
+    const results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
     const area = document.getElementById("savedResults");
-    if (!storage) {
-        document.getElementById("storageNote").style.display = "block";
+
+    if (results.length === 0) {
+        area.innerHTML = "<p>No completed students yet.</p>";
         return;
     }
-    try {
-        const results = JSON.parse(storage.getItem("arduinoVivaResults") || "[]");
-        if (results.length === 0) {
-            area.innerHTML = "<p>No results yet.</p>";
-            return;
-        }
-        let html = `<table class="result-table"><tr><th>#</th><th>Name</th><th>ID</th><th>Marks</th><th>%</th><th>Time</th></tr>`;
-        results.forEach((r,i) => {
-            html += `<tr>
-                <td>${i+1}</td>
-                <td>${escapeHTML(r["Student Name"])}</td>
-                <td>${escapeHTML(r["Student ID"])}</td>
-                <td>${r.Marks} / 10</td>
-                <td>${r.Percentage}%</td>
-                <td>${r["Time Used"]}</td>
-            </tr>`;
-        });
-        html += `</table>`;
-        area.innerHTML = html;
-    } catch(e) {
-        area.innerHTML = "<p>Could not load results.</p>";
-    }
+
+    let html = `<table class="result-table">
+        <tr><th>#</th><th>Student Name</th><th>Student ID</th><th>Marks</th><th>%</th><th>Time</th></tr>`;
+
+    results.forEach(function(r, i) {
+        html += `<tr>
+            <td>${i + 1}</td>
+            <td>${escapeHTML(r["Student Name"])}</td>
+            <td>${escapeHTML(r["Student ID"])}</td>
+            <td>${r["Marks"]} / ${r["Total"]}</td>
+            <td>${r["Percentage"]}%</td>
+            <td>${r["Time Used"]}</td>
+        </tr>`;
+    });
+    html += `</table>`;
+    area.innerHTML = html;
 }
 
 function downloadExcel() {
-    if (!storage) {
-        alert("Storage blocked. Please note marks manually.");
+    const results = JSON.parse(localStorage.getItem("arduinoVivaResults")) || [];
+    if (results.length === 0) {
+        alert("No results to download yet.");
         return;
     }
-    try {
-        const results = JSON.parse(storage.getItem("arduinoVivaResults") || "[]");
-        if (results.length === 0) return alert("No results");
-        const ws = XLSX.utils.json_to_sheet(results);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Viva Results");
-        XLSX.writeFile(wb, "Arduino_Viva_Results.xlsx");
-    } catch(e) {
-        alert("Download failed");
-    }
+    const ws = XLSX.utils.json_to_sheet(results);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Viva Results");
+    XLSX.writeFile(wb, "Arduino_Viva_Results.xlsx");
 }
 
 function clearResults() {
-    if (!storage) return alert("Storage blocked");
-    if (confirm("Clear all results?")) {
-        storage.removeItem("arduinoVivaResults");
+    if (confirm("Delete all saved results?")) {
+        localStorage.removeItem("arduinoVivaResults");
         showSavedResults();
     }
 }
 
-window.onload = showSavedResults;
+/* ===================== LOAD ===================== */
+window.onload = function() {
+    showSavedResults();
+};
 </script>
 
 <footer>
-    Arduino Practical Viva • 10 Questions (8 MCQ/Fill + 2 Typing) • 10 Minutes
+    Arduino Practical Viva Examination<br>
+    ET2404 – Microprocessors and Microcontroller Systems<br>
+    <strong>2 Typed Coding Questions + 8 MCQs • 10 Questions • 10 Minutes</strong>
 </footer>
 </body>
 </html>

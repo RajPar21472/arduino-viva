@@ -192,7 +192,7 @@ footer {
         <div class="info-box">
             <strong>Arduino Practical Viva</strong><br><br>
             • Total 10 Questions<br>
-            • 2 typed coding questions + 8 multiple-choice questions<br>
+            • 3 typed short-answer questions + 7 multiple-choice questions<br>
             • Time Limit: 10 minutes<br>
             • Cannot go back to previous questions<br>
             • Auto-submit when time ends
@@ -230,7 +230,7 @@ footer {
             <strong>Student:</strong> <span id="displayName"></span><br>
             <strong>ID:</strong> <span id="displayID"></span>
         </div>
-        <div class="timer" id="timer">05:00</div>
+        <div class="timer" id="timer">10:00</div>
     </div>
 
     <div class="card">
@@ -291,81 +291,34 @@ const EXAM_PASSWORD = "ArduinoViva";   // ← Change this password if needed
 const TOTAL_TIME = 600;                // 10 minutes
 
 /* ===================== QUESTION BANK ===================== */
-/* 2 typed coding questions + 8 MCQs = 10 questions */
+/* Each student gets 3 typed questions + 7 MCQs. Questions are randomized from the lab-sheet topics.
+   Three complex questions per student: one C program and two complex MCQs. */
 
-const questionBank = [
-    {
-        type: "text",
-        level: "coding",
-        question: `QUESTION 1 — C PROGRAM TYPING\nWrite a complete AVR C program for the Arduino UNO (ATmega328P) to blink the built-in LED on PB5 / digital pin 13. The LED must be ON for 1 second and OFF for 2 seconds. Use DDRB, PORTB and _delay_ms().`,
-        answer: null,
-        explanation: "Lecturer must manually assess the typed C program. Expected elements include avr/io.h, util/delay.h, F_CPU, DDRB, PORTB, PB5, while(1), and delays of 1000 ms and 2000 ms."
-    },
-    {
-        type: "text",
-        level: "coding",
-        question: `QUESTION 2 — ARDUINO CODE TYPING\nWrite a complete Arduino sketch to control an LED on pin 13 using the Serial Monitor. When the user sends character '1', turn the LED ON. When the user sends character '0', turn the LED OFF. Use Serial.begin(), Serial.available() and Serial.read().`,
-        answer: null,
-        explanation: "Lecturer must manually assess the typed Arduino sketch. Expected elements include pinMode(13, OUTPUT), Serial.begin(9600), Serial.available(), Serial.read(), comparisons with '1' and '0', and digitalWrite(HIGH/LOW)."
-    },
-    {
-        type: "mcq", level: "basic",
-        question: "Which Arduino function runs only once when the board starts or resets?",
-        options: ["loop()", "setup()", "delay()", "digitalWrite()"],
-        answer: 1,
-        explanation: "setup() runs once at the beginning of the program."
-    },
-    {
-        type: "mcq", level: "basic",
-        question: "What is the main purpose of the USB cable connected to the Arduino UNO?",
-        options: ["Only to power the LED", "To communicate with the computer and provide power", "Only to connect the LCD", "To increase PWM frequency"],
-        answer: 1,
-        explanation: "USB can provide power and serial data communication with the computer."
-    },
-    {
-        type: "mcq", level: "advanced",
-        question: "Which group contains only the PWM pins of the Arduino UNO?",
-        options: ["2, 4, 7, 8", "3, 5, 6, 9, 10, 11", "0, 1, 2, 13", "A0, A1, A2, A3"],
-        answer: 1,
-        explanation: "Arduino UNO PWM pins are 3, 5, 6, 9, 10 and 11."
-    },
-    {
-        type: "mcq", level: "advanced",
-        question: "On the Arduino UNO, which pins are used for I2C communication?",
-        options: ["A2 and A3", "A4 (SDA) and A5 (SCL)", "Digital pins 2 and 3", "Pins 9 and 10"],
-        answer: 1,
-        explanation: "On the Arduino UNO, A4 is SDA and A5 is SCL."
-    },
-    {
-        type: "mcq", level: "basic",
-        question: "What value passed to analogWrite() requests maximum PWM output?",
-        options: ["0", "1", "127", "255"],
-        answer: 3,
-        explanation: "For the standard Arduino UNO analogWrite() range, 255 requests 100% duty cycle."
-    },
-    {
-        type: "mcq", level: "advanced",
-        question: "What does Serial.parseInt() do?",
-        options: ["Turns the LED on", "Reads an integer from serial input", "Starts I2C communication", "Sets a pin as output"],
-        answer: 1,
-        explanation: "Serial.parseInt() reads an integer value from the serial input buffer."
-    },
-    {
-        type: "mcq", level: "advanced",
-        question: "In AVR C, what is the purpose of DDRB?",
-        options: ["It prints text to the LCD", "It sets the direction of Port B pins", "It controls the serial baud rate", "It creates a delay"],
-        answer: 1,
-        explanation: "DDRB configures Port B pins as inputs or outputs; a bit value of 1 sets the corresponding pin as output."
-    },
-    {
-        type: "mcq", level: "advanced",
-        question: "Which library is used to communicate with I2C devices such as an I2C LCD?",
-        options: ["<avr/io.h>", "<Wire.h>", "<util/delay.h>", "<Servo.h>"],
-        answer: 1,
-        explanation: "Wire.h provides I2C/TWI communication functions on supported Arduino boards."
-    }
+const typedQuestionPool = [
+ {type:"text",level:"coding",difficulty:"complex",topic:"C",question:"TYPED — C LANGUAGE\nWrite the AVR C program from the lab sheet to turn the built-in LED ON for 1 second and OFF for 2 seconds. Use DDRB, PORTB, PB5 and _delay_ms().",answer:null,explanation:"Manual marking: avr/io.h, util/delay.h, DDRB sets PB5 output, PORTB HIGH/LOW, while(1), delays 1000 ms and 2000 ms."},
+ {type:"text",level:"short",difficulty:"easy",topic:"Serial",question:"TYPED — SERIAL COMMUNICATION\nIn 2–3 sentences, explain what happens when the user sends '1' and '0' through the Serial Monitor.",answer:null,explanation:"'1' turns the LED ON using HIGH; '0' turns it OFF using LOW."},
+ {type:"text",level:"short",difficulty:"easy",topic:"PWM",question:"TYPED — PWM\nGive three analogWrite() examples for an LED on pin 9: OFF, approximately half duty cycle, and maximum brightness.",answer:null,explanation:"Expected: analogWrite(9, 0), analogWrite(9, 127), analogWrite(9, 255)."},
+ {type:"text",level:"short",difficulty:"easy",topic:"I2C wiring",question:"TYPED — I2C LCD\nWrite the four LCD-to-Arduino UNO connections from the lab sheet.",answer:null,explanation:"GND→GND, VCC→5V, SDA→A4, SCL→A5."},
+ {type:"text",level:"short",difficulty:"complex",topic:"Arduino code",question:"TYPED — ARDUINO CODE\nWrite an Arduino sketch that reads an integer from the Serial Monitor and sets LED brightness on pin 9. Use Serial.begin(9600), Serial.available(), Serial.parseInt(), and accept values from 0 to 255.",answer:null,explanation:"Manual marking: pinMode(9,OUTPUT), Serial.begin(9600), Serial.available(), Serial.parseInt(), range check, analogWrite()."},
+ {type:"text",level:"short",difficulty:"complex",topic:"LCD code",question:"TYPED — I2C LCD CODE\nWrite the two #include lines and the statement that creates a 16-column, 2-row I2C LCD object with address 0x27.",answer:null,explanation:"Expected: #include <Wire.h>, #include <LiquidCrystal_I2C.h>, LiquidCrystal_I2C lcd(0x27, 16, 2);"}
 ];
 
+const mcqQuestionPool = [
+ {type:"mcq",level:"basic",difficulty:"easy",question:"Which Arduino function runs once when the board starts or resets?",options:["loop()","setup()","delay()","digitalWrite()"],answer:1,explanation:"setup() runs once at startup."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What is the main purpose of the USB cable connected to the Arduino UNO?",options:["Only to power the LED","To communicate with the computer and provide power","Only to connect the LCD","To increase PWM frequency"],answer:1,explanation:"USB can provide power and serial communication with the computer."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What does pinMode(13, OUTPUT) do?",options:["Reads serial data","Sets pin 13 as an output","Starts I2C","Sets the baud rate"],answer:1,explanation:"pinMode configures a pin as input or output."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What value passed to analogWrite() requests maximum PWM output?",options:["0","1","127","255"],answer:3,explanation:"255 requests 100% duty cycle."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What does Serial.parseInt() do?",options:["Turns the LED on","Reads an integer from serial input","Starts I2C","Sets a pin as output"],answer:1,explanation:"It reads an integer from serial input."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"Which library is used for I2C/TWI communication?",options:["<avr/io.h>","<Wire.h>","<util/delay.h>","<Servo.h>"],answer:1,explanation:"Wire.h provides I2C/TWI communication."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"Which command turns a digital output pin LOW?",options:["digitalRead(pin)","Serial.read()","digitalWrite(pin, LOW)","analogWrite(pin, 255)"],answer:2,explanation:"digitalWrite(pin, LOW) sets the pin LOW."},
+ {type:"mcq",level:"advanced",difficulty:"complex",question:"Which group contains only PWM pins of the Arduino UNO?",options:["2, 4, 7, 8","3, 5, 6, 9, 10, 11","0, 1, 2, 13","A0, A1, A2, A3"],answer:1,explanation:"PWM pins are 3, 5, 6, 9, 10 and 11."},
+ {type:"mcq",level:"advanced",difficulty:"complex",question:"On the Arduino UNO, which pins are used for I2C communication?",options:["A2 and A3","A4 (SDA) and A5 (SCL)","Digital pins 2 and 3","Pins 9 and 10"],answer:1,explanation:"A4 is SDA and A5 is SCL."},
+ {type:"mcq",level:"advanced",difficulty:"complex",question:"In AVR C, what is the purpose of DDRB?",options:["Prints text to the LCD","Sets the direction of Port B pins","Controls serial baud rate","Creates a delay"],answer:1,explanation:"DDRB configures Port B pins as inputs or outputs."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What does lcd.backlight() do?",options:["Clears the program","Turns on the LCD backlight","Reads the I2C address","Sets pin 13 as input"],answer:1,explanation:"It turns on the LCD backlight."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What does Serial.begin(9600) do?",options:["Starts serial communication at 9600 baud","Sets LED brightness to 9600","Uses pin 9600","Sets LCD columns to 9600"],answer:0,explanation:"It starts serial communication at 9600 baud."},
+ {type:"mcq",level:"basic",difficulty:"easy",question:"What does PB5 correspond to on the standard Arduino UNO with ATmega328P?",options:["Analog pin A0","Digital pin 13 / built-in LED","SDA pin A4","SCL pin A5"],answer:1,explanation:"PB5 corresponds to digital pin 13."}
+];
+const questionBank = [];
 /* ===================== EXAM VARIABLES ===================== */
 let selectedQuestions = [];
 let currentQuestion = 0;
@@ -399,8 +352,12 @@ function startExam() {
         return;
     }
 
-    // Use all 10 questions and shuffle the order for each student
-    selectedQuestions = [...questionBank];
+    // Randomized set for each student: 3 typed questions (including one C question) + 7 MCQs.
+    const cQuestion = typedQuestionPool.find(q => q.topic === "C");
+    const otherTyped = shuffle(typedQuestionPool.filter(q => q.topic !== "C" && q.difficulty === "easy")).slice(0, 2);
+    const easyMcqs = shuffle(mcqQuestionPool.filter(q => q.difficulty === "easy")).slice(0, 5);
+    const complexMcqs = shuffle(mcqQuestionPool.filter(q => q.difficulty === "complex")).slice(0, 2);
+    selectedQuestions = shuffle([cQuestion, ...otherTyped, ...easyMcqs, ...complexMcqs]);
     currentQuestion = 0;
     studentAnswers = [];
     secondsRemaining = TOTAL_TIME;
@@ -565,9 +522,9 @@ function displayResult() {
     document.getElementById("resultStudent").textContent = name + " — " + id;
     document.getElementById("resultName").textContent = name;
     document.getElementById("resultID").textContent = id;
-    document.getElementById("totalMarks").textContent = marks + " / " + total + " MCQs (typed code pending review)";
+    document.getElementById("totalMarks").textContent = marks + " / " + total + " MCQs (typed answers pending manual review)";
     document.getElementById("finalScore").textContent = marks + " / " + total + " MCQs";
-    document.getElementById("percentage").textContent = percent.toFixed(1) + "% on MCQs; typed code requires lecturer marking.";
+    document.getElementById("percentage").textContent = percent.toFixed(1) + "% on MCQs; typed answers require lecturer marking.";
     document.getElementById("totalPercentage").textContent = percent.toFixed(1) + "% (MCQs only)";
 
     let used = TOTAL_TIME - secondsRemaining;
@@ -705,7 +662,7 @@ window.onload = function() {
 <footer>
     Arduino Practical Viva Examination<br>
     ET2404 – Microprocessors and Microcontroller Systems<br>
-    <strong>2 Typed Coding Questions + 8 MCQs • 10 Questions • 10 Minutes</strong>
+    <strong>3 Typed Short Answers + 7 MCQs • 10 Questions • 10 Minutes</strong>
 </footer>
 </body>
 </html>
